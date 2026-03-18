@@ -25,6 +25,7 @@
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
+    "test:site": "node scripts/test-site.mjs",
     "test:watch": "vitest"
   },
   "keywords": [
