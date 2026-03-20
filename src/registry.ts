@@ -15,7 +15,7 @@ export enum Strategy {
 export interface Arg {
   name: string;
   type?: string;
-  default?: any;
+  default?: unknown;
   required?: boolean;
   positional?: boolean;
   help?: string;
@@ -31,8 +31,8 @@ export interface CliCommand {
   browser?: boolean;
   args: Arg[];
   columns?: string[];
-  func?: (page: IPage, kwargs: Record<string, any>, debug?: boolean) => Promise<any>;
-  pipeline?: any[];
+  func?: (page: IPage, kwargs: Record<string, any>, debug?: boolean) => Promise<unknown>;
+  pipeline?: Record<string, unknown>[];
   timeoutSeconds?: number;
   source?: string;
 }

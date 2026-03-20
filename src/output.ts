@@ -14,7 +14,7 @@ export interface RenderOptions {
   source?: string;
 }
 
-export function render(data: any, opts: RenderOptions = {}): void {
+export function render(data: unknown, opts: RenderOptions = {}): void {
   const fmt = opts.fmt ?? 'table';
   if (data === null || data === undefined) {
     console.log(data);
@@ -29,8 +29,8 @@ export function render(data: any, opts: RenderOptions = {}): void {
   }
 }
 
-function renderTable(data: any, opts: RenderOptions): void {
-  const rows: any[] = Array.isArray(data) ? data : [data];
+function renderTable(data: unknown, opts: RenderOptions): void {
+  const rows = Array.isArray(data) ? data : [data as Record<string, unknown>];
   if (!rows.length) { console.log(chalk.dim('(no data)')); return; }
   const columns = opts.columns ?? Object.keys(rows[0]);
 
@@ -44,7 +44,7 @@ function renderTable(data: any, opts: RenderOptions): void {
 
   for (const row of rows) {
     table.push(columns.map(c => {
-      const v = row[c];
+      const v = (row as Record<string, unknown>)[c];
       return v === null || v === undefined ? '' : String(v);
     }));
   }
@@ -59,36 +59,36 @@ function renderTable(data: any, opts: RenderOptions): void {
   console.log(chalk.dim(footer.join(' · ')));
 }
 
-function renderJson(data: any): void {
+function renderJson(data: unknown): void {
   console.log(JSON.stringify(data, null, 2));
 }
 
-function renderMarkdown(data: any, opts: RenderOptions): void {
-  const rows: any[] = Array.isArray(data) ? data : [data];
+function renderMarkdown(data: unknown, opts: RenderOptions): void {
+  const rows = Array.isArray(data) ? data : [data as Record<string, unknown>];
   if (!rows.length) return;
   const columns = opts.columns ?? Object.keys(rows[0]);
   console.log('| ' + columns.join(' | ') + ' |');
   console.log('| ' + columns.map(() => '---').join(' | ') + ' |');
   for (const row of rows) {
-    console.log('| ' + columns.map(c => String(row[c] ?? '')).join(' | ') + ' |');
+    console.log('| ' + columns.map(c => String((row as Record<string, unknown>)[c] ?? '')).join(' | ') + ' |');
   }
 }
 
-function renderCsv(data: any, opts: RenderOptions): void {
-  const rows: any[] = Array.isArray(data) ? data : [data];
+function renderCsv(data: unknown, opts: RenderOptions): void {
+  const rows = Array.isArray(data) ? data : [data as Record<string, unknown>];
   if (!rows.length) return;
   const columns = opts.columns ?? Object.keys(rows[0]);
   console.log(columns.join(','));
   for (const row of rows) {
     console.log(columns.map(c => {
-      const v = String(row[c] ?? '');
+      const v = String((row as Record<string, unknown>)[c] ?? '');
       return v.includes(',') || v.includes('"') || v.includes('\n')
         ? `"${v.replace(/"/g, '""')}"` : v;
     }).join(','));
   }
 }
 
-function renderYaml(data: any): void {
+function renderYaml(data: unknown): void {
   console.log(yaml.dump(data, { sortKeys: false, lineWidth: 120, noRefs: true }));
 }
 

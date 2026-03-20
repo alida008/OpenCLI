@@ -53,7 +53,7 @@ export function slugify(value: string): string {
 
 interface NetworkEntry {
   method: string; url: string; status: number | null;
-  contentType: string; responseBody?: any; requestHeaders?: Record<string, string>;
+  contentType: string; responseBody?: unknown; requestHeaders?: Record<string, string>;
 }
 
 interface AnalyzedEndpoint {
@@ -75,7 +75,7 @@ interface InferredCapability {
  * Parse raw network output from Playwright MCP.
  * Handles text format: [GET] url => [200]
  */
-function parseNetworkRequests(raw: any): NetworkEntry[] {
+function parseNetworkRequests(raw: unknown): NetworkEntry[] {
   if (typeof raw === 'string') {
     const entries: NetworkEntry[] = [];
     for (const line of raw.split('\n')) {
@@ -123,11 +123,11 @@ function detectAuthIndicators(headers?: Record<string, string>): string[] {
   return indicators;
 }
 
-function analyzeResponseBody(body: any): AnalyzedEndpoint['responseAnalysis'] {
+function analyzeResponseBody(body: unknown): AnalyzedEndpoint['responseAnalysis'] {
   if (!body || typeof body !== 'object') return null;
-  const candidates: Array<{ path: string; items: any[] }> = [];
+  const candidates: Array<{ path: string; items: unknown[] }> = [];
 
-  function findArrays(obj: any, path: string, depth: number) {
+  function findArrays(obj: unknown, path: string, depth: number) {
     if (depth > 4) return;
     if (Array.isArray(obj) && obj.length >= 2 && obj.some(item => item && typeof item === 'object' && !Array.isArray(item))) {
       candidates.push({ path, items: obj });
@@ -154,13 +154,15 @@ function analyzeResponseBody(body: any): AnalyzedEndpoint['responseAnalysis'] {
   return { itemPath: best.path || null, itemCount: best.items.length, detectedFields, sampleFields };
 }
 
-function flattenFields(obj: any, prefix: string, maxDepth: number): string[] {
+function flattenFields(obj: unknown, prefix: string, maxDepth: number): string[] {
   if (maxDepth <= 0 || !obj || typeof obj !== 'object') return [];
   const names: string[] = [];
-  for (const key of Object.keys(obj)) {
+  const record = obj as Record<string, unknown>;
+  for (const key of Object.keys(record)) {
     const full = prefix ? `${prefix}.${key}` : key;
     names.push(full);
-    if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) names.push(...flattenFields(obj[key], full, maxDepth - 1));
+    const val = record[key];
+    if (val && typeof val === 'object' && !Array.isArray(val)) names.push(...flattenFields(val, full, maxDepth - 1));
   }
   return names;
 }
