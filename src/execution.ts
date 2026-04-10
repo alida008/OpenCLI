@@ -135,11 +135,11 @@ export async function executeCommand(
   cmd: CliCommand,
   rawKwargs: CommandArgs,
   debug: boolean = false,
+  opts: { prepared?: boolean } = {},
 ): Promise<unknown> {
   let kwargs: CommandArgs;
   try {
-    kwargs = coerceAndValidateArgs(cmd.args, rawKwargs);
-    cmd.validateArgs?.(kwargs);
+    kwargs = opts.prepared ? rawKwargs : prepareCommandArgs(cmd, rawKwargs);
   } catch (err) {
     if (err instanceof ArgumentError) throw err;
     throw new ArgumentError(getErrorMessage(err));
@@ -189,7 +189,7 @@ export async function executeCommand(
           try {
             await page.goto(preNavUrl);
           } catch (err) {
-            if (debug) log.debug(`[pre-nav] Failed to navigate to ${preNavUrl}: ${err instanceof Error ? err.message : err}`);
+            log.warn(`Pre-navigation to ${preNavUrl} failed: ${err instanceof Error ? err.message : err}`);
           }
         }
         try {
@@ -242,4 +242,13 @@ export async function executeCommand(
   hookCtx.finishedAt = Date.now();
   await emitHook('onAfterExecute', hookCtx, result);
   return result;
+}
+
+export function prepareCommandArgs(
+  cmd: CliCommand,
+  rawKwargs: CommandArgs,
+): CommandArgs {
+  const kwargs = coerceAndValidateArgs(cmd.args, rawKwargs);
+  cmd.validateArgs?.(kwargs);
+  return kwargs;
 }

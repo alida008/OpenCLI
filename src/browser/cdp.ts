@@ -233,18 +233,20 @@ class CDPPage extends BasePage {
   }
 
   async startNetworkCapture(pattern: string = ''): Promise<void> {
+    // Always update the filter pattern
     this._networkCapturePattern = pattern;
-    this._networkEntries = [];
-    this._pendingRequests.clear();
-    this._pendingBodyFetches.clear();
 
+    // Reset state only on first start; avoid wiping entries if already capturing
     if (!this._networkCapturing) {
+      this._networkEntries = [];
+      this._pendingRequests.clear();
+      this._pendingBodyFetches.clear();
       await this.bridge.send('Network.enable');
 
       // Step 1: Record request method/url on requestWillBeSent
       this.bridge.on('Network.requestWillBeSent', (params: unknown) => {
         const p = params as { requestId: string; request: { method: string; url: string }; timestamp: number };
-        if (!pattern || p.request.url.includes(pattern)) {
+        if (!this._networkCapturePattern || p.request.url.includes(this._networkCapturePattern)) {
           const idx = this._networkEntries.push({
             url: p.request.url,
             method: p.request.method,
